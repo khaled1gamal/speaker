@@ -1,25 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<body>
+  </head>
+  <body>
     <textarea name="" id="input" cols="30" rows="10"></textarea>
     <button id="btn">asd</button>
 
+    <button id="notifyButton">اضغط لإرسال إشعار</button>
 
+    <audio id="notificationSound" src="notification.wav" preload="auto"></audio>
 
     <script>
-        const input = document.getElementById("input")
-        const btn = document.getElementById("btn")
+      const input = document.getElementById("input");
+      const btn = document.getElementById("btn");
 
-        btn.addEventListener("click", () => {
-            const utterThis = new SpeechSynthesisUtterance(input.value);
-            speechSynthesis.speak(utterThis)
-        })
+      btn.addEventListener("click", () => {
+        const utterThis = new SpeechSynthesisUtterance(input.value);
+        speechSynthesis.speak(utterThis);
+      });
     </script>
-    
-</body>
+
+    <script>
+      // تحقق من دعم المتصفح للإشعارات
+      if (!("Notification" in window)) {
+        alert("المتصفح الخاص بك لا يدعم الإشعارات.");
+      } else {
+        // طلب إذن الإشعارات
+        Notification.requestPermission();
+      }
+
+      // وظيفة لعرض الإشعار وتشغيل الصوت
+      function sendNotification() {
+        // تحقق من إذن الإشعارات
+        if (Notification.permission === "granted") {
+          // عرض الإشعار
+          var notification = new Notification("New Notification", {
+            body: "New Message",
+            icon: "Notification-icon.png", // يمكنك استبدالها بأي صورة تريد
+          });
+
+          // تشغيل الصوت
+          var sound = document.getElementById("notificationSound");
+          sound.play();
+        }
+      }
+
+      // ربط الزر بحدث النقر
+      document
+        .getElementById("notifyButton")
+        .addEventListener("click", sendNotification);
+    </script>
+  </body>
 </html>
