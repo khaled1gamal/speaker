@@ -3,54 +3,145 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Text to Speech & Notifications</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      textarea {
+        resize: vertical;
+        height: 140px;
+        width: 100%;
+        border: 3px solid #989898;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .controls {
+        margin: 10px 0;
+      }
+      label {
+        margin-right: 10px;
+      }
+      select {
+        padding: 5px;
+        margin-right: 15px;
+      }
+    </style>
   </head>
   <body>
-    <textarea name="" id="input" cols="30" rows="10"></textarea>
-    <br><br>
-    <button id="btn">Speak the text</button>
-    <br><br><br><br><br><br>
+    <div class="container">
+      <h2>Text to Speech</h2>
+      <textarea
 
-    <button id="notifyButton">اضغط لإرسال إشعار</button>
+        id="input"
+        placeholder="Enter text to speak..."
+        rows="5"
+      ></textarea>
+      <div class="controls">
+        <label for="voiceSelect">Voice:</label>
+        <select id="voiceSelect"></select>
+        <label for="rateSelect">Speed:</label>
+        <select id="rateSelect">
+          <option value="0.5">Slow</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.5">Fast</option>
+        </select>
+      </div>
+      <button id="btn">Speak</button>
+      <button id="stopBtn">Stop</button>
+    </div>
 
-    <audio id="notificationSound" src="notification.wav" preload="auto"></audio>
+    <div class="container">
+      <h2>Notifications</h2>
+      <button id="notifyButton">Send Notification</button>
+      <audio
+        id="notificationSound"
+        src="notification.wav"
+        preload="auto"
+      ></audio>
+    </div>
 
     <script>
       const input = document.getElementById("input");
       const btn = document.getElementById("btn");
+      const stopBtn = document.getElementById("stopBtn");
+      const voiceSelect = document.getElementById("voiceSelect");
+      const rateSelect = document.getElementById("rateSelect");
+
+      // Load available voices
+      function loadVoices() {
+        const voices = speechSynthesis.getVoices();
+        voiceSelect.innerHTML = "";
+        voices.forEach((voice) => {
+          const option = document.createElement("option");
+          option.value = voice.name;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          voiceSelect.appendChild(option);
+        });
+      }
+
+      // Load voices when they become available
+      speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
 
       btn.addEventListener("click", () => {
         const utterThis = new SpeechSynthesisUtterance(input.value);
+        const selectedVoice = speechSynthesis
+          .getVoices()
+          .find((voice) => voice.name === voiceSelect.value);
+        if (selectedVoice) {
+          utterThis.voice = selectedVoice;
+        }
+        utterThis.rate = parseFloat(rateSelect.value);
         speechSynthesis.speak(utterThis);
       });
-    </script>
 
-    <script>
-      // تحقق من دعم المتصفح للإشعارات
+      stopBtn.addEventListener("click", () => {
+        speechSynthesis.cancel();
+      });
+
+      // Notification functionality
       if (!("Notification" in window)) {
-        alert("المتصفح الخاص بك لا يدعم الإشعارات.");
+        alert("Your browser does not support notifications.");
       } else {
-        // طلب إذن الإشعارات
         Notification.requestPermission();
       }
 
-      // وظيفة لعرض الإشعار وتشغيل الصوت
       function sendNotification() {
-        // تحقق من إذن الإشعارات
         if (Notification.permission === "granted") {
-          // عرض الإشعار
-          var notification = new Notification("New Notification", {
-            body: "New Message",
-            icon: "Notification-icon.png", // يمكنك استبدالها بأي صورة تريد
+          const notification = new Notification("New Message", {
+            body: "You have a new notification!",
+            icon: "Notification-icon.png",
           });
 
-          // تشغيل الصوت
-          var sound = document.getElementById("notificationSound");
+          const sound = document.getElementById("notificationSound");
           sound.play();
         }
       }
 
-      // ربط الزر بحدث النقر
       document
         .getElementById("notifyButton")
         .addEventListener("click", sendNotification);
